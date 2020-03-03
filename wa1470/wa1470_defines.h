@@ -1,7 +1,7 @@
 #ifndef _WA1470_DEFINES_H
 #define _WA1470_DEFINES_H
 
-#define WA1470_LOG
+//#define WA1470_LOG
 
 //#define DEM_CALC_SPECTRUM
 
