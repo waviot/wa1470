@@ -80,6 +80,13 @@ void wa1470_reinit(uint32_t preambule)
   	wa1470mod_init(send_by_dbpsk); 
 }
 
+void wa1470_deinit()
+{
+        wa1470_hal->__wa1470_disable_pin_irq();
+        wa1470rfe_deinit();
+        
+}
+
 void wa1470_isr()
 {
 	wa1470dem_isr();
