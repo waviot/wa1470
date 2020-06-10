@@ -66,9 +66,10 @@ void wa1470_init(_Bool send_by_bpsk_pin, uint32_t preambule, wa1470_HAL_st* hal_
         wa1470_scheduler = scheduler;
         if((wa1470_hal == 0) || (wa1470_scheduler == 0)) while(1); //HAL and scheduler pointers must be provided 
         send_by_dbpsk = send_by_bpsk_pin;
-	wa1470rfe_init();
+	//wa1470rfe_init();
         wa1470dem_init(preambule);
 	wa1470mod_init(send_by_dbpsk); 
+        
 }
 
 void wa1470_reinit(uint32_t preambule)

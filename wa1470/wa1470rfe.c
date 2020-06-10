@@ -42,6 +42,7 @@ void wa1470rfe_init()
 void wa1470rfe_deinit()
 {
 	wa1470_hal->__wa1470_chip_disable();
+        wa1470_hal->__spi_cs_set(0);
 }
 
 void wa1470rfe_set_mode(rfe_mode_s mode)
