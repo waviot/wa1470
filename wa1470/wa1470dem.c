@@ -39,7 +39,7 @@ void wa1470dem_init(uint32_t preambule)
   
 	uint8_t NB_FI_RX_CRC_POLY[4] = {0xb7, 0x1d, 0xc1, 0x04};
 	wa1470_spi_write8(DEM_CONTROL, DEM_CONTROL_RESET);
-	wa1470dem_set_threshold(800); //1024 
+        wa1470dem_set_threshold(800); //1024 
 	wa1470dem_set_alpha(128, 5);
 	wa1470dem_set_crc_poly(NB_FI_RX_CRC_POLY);
 	wa1470dem_set_hop_table(current_hop_table);
