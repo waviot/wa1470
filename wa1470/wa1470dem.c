@@ -364,7 +364,7 @@ static uint32_t wa1470dem_get_rssi_int(_Bool aver_or_max)
 
 float wa1470dem_get_rssi()
 {
-	return 20*log10f(wa1470dem_get_rssi_int(0)) - wa1470dem_get_rssi_logoffset();
+	return 20*log10f(wa1470dem_get_rssi_int(1)) - wa1470dem_get_rssi_logoffset();
 }
 
 float wa1470dem_get_noise()
