@@ -9,6 +9,7 @@ ischeduler_st* wa1470_scheduler = 0;
 _Bool send_by_dbpsk;
 
 #ifdef WA1470_LOG
+#warning WA1470_LOG
 char wa1470_log_string[256];
 #endif
 
@@ -64,12 +65,12 @@ void wa1470_init(_Bool send_by_bpsk_pin, uint32_t preambule, wa1470_HAL_st* hal_
 {
         wa1470_hal = hal_ptr;
         wa1470_scheduler = scheduler;
-        if((wa1470_hal == 0) || (wa1470_scheduler == 0)) while(1); //HAL and scheduler pointers must be provided 
+        if((wa1470_hal == 0) || (wa1470_scheduler == 0)) while(1); //HAL and scheduler pointers must be provided
         send_by_dbpsk = send_by_bpsk_pin;
 	//wa1470rfe_init();
         wa1470dem_init(preambule);
-	wa1470mod_init(send_by_dbpsk); 
-        
+	wa1470mod_init(send_by_dbpsk);
+
 }
 
 void wa1470_reinit(uint32_t preambule)
@@ -78,14 +79,14 @@ void wa1470_reinit(uint32_t preambule)
         wa1470_hal->__wa1470_nop_dalay_ms(1);
         wa1470rfe_init();
         wa1470dem_init(preambule);
-  	wa1470mod_init(send_by_dbpsk); 
+  	wa1470mod_init(send_by_dbpsk);
 }
 
 void wa1470_deinit()
 {
         wa1470_hal->__wa1470_disable_pin_irq();
         wa1470rfe_deinit();
-        
+
 }
 
 void wa1470_isr()
