@@ -92,6 +92,9 @@ void wa1470rfe_set_band(rfe_band_s band);
 _Bool wa1470rfe_set_freq(uint32_t freq);
 
 void wa1470rfe_set_rx_gain(uint8_t gain);
+
+void wa1470rfe_set_zero_gain_mode(_Bool mode);
+extern _Bool rfe_zero_gain_mode;
 extern uint16_t rfe_rx_total_vga_gain;
 
 #endif
