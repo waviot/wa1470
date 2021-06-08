@@ -76,7 +76,7 @@ void wa1470_init(_Bool send_by_bpsk_pin, uint32_t preambule, wa1470_HAL_st* hal_
 void wa1470_reinit(uint32_t preambule)
 {
         wa1470rfe_deinit();
-        wa1470_hal->__wa1470_nop_dalay_ms(1);
+        wa1470_hal->__wa1470_nop_dalay_ms(2);
         wa1470rfe_init();
         wa1470dem_init(preambule);
   	wa1470mod_init(send_by_dbpsk);
