@@ -164,3 +164,11 @@ void wa1470rfe_set_zero_gain_mode(_Bool mode)
 {
     rfe_zero_gain_mode = mode;
 }
+
+
+void wa1470rfe_transmit_carrier(uint32_t freq)
+{
+    wa1470rfe_set_tx_mode(RFE_TX_MODE_BPSK);
+    wa1470rfe_set_freq(freq);
+    wa1470rfe_set_mode(RFE_MODE_TX);
+}
