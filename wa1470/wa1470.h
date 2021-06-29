@@ -11,13 +11,14 @@
 #include "ischeduler.h"
 
 #define WA1470_SEND_BY_I_Q_MODULATOR	        0
-#define WA1470_SEND_BY_BPSK_PIN			1
+#define WA1470_SEND_BY_BPSK_PIN			        1
+
 
 #ifdef WA1470_LOG
 extern char wa1470_log_string[];
 #endif
 
-typedef struct 
+typedef struct
 {
   void (*__wa1470_enable_pin_irq)(void);
   void (*__wa1470_disable_pin_irq)(void);
