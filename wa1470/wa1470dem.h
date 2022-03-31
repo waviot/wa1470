@@ -1,6 +1,8 @@
 #ifndef _wa1470DEM_H
 #define _wa1470DEM_H
 
+#define DEM_NOISE_TICK  50      //50 ms
+#define DEM_NOISE_AVER  10      //10 times
 
 typedef enum
 {
@@ -97,6 +99,7 @@ void wa1470dem_set_threshold(uint16_t SOFT_DETECT_THR);
 void wa1470dem_set_freq(uint32_t freq);
 float wa1470dem_get_rssi();
 float wa1470dem_get_noise();
+uint8_t wa1470dem_get_noise_calc_duration();
 void wa1470dem_get_spectrum(uint8_t size, float* data);
 int16_t wa1470dem_get_bitrate_sensitivity(dem_bitrate_s bitrate);
 
