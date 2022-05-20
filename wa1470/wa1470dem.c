@@ -5,14 +5,14 @@
 
 dem_packet_st dem_mas[DEM_MAS_SIZE];
 
-dem_packet_info_st dem_info_mas[DEM_MAS_SIZE];
+//dem_packet_info_st dem_info_mas[DEM_MAS_SIZE];
 
 uint8_t	dem_mess_received;
 
 struct scheduler_desc dem_processMessages_desc;
 
 dem_packet_st tmp_dem_mas[DEM_MAS_SIZE];
-dem_packet_info_st tmp_dem_info_mas[DEM_MAS_SIZE];
+//dem_packet_info_st tmp_dem_info_mas[DEM_MAS_SIZE];
 uint8_t	tmp_dem_mess_received;
 
 dem_bitrate_s current_rx_phy = DBPSK_100H_PROT_D;
@@ -26,6 +26,8 @@ const int32_t DEM_FREQ_OFFSETS[8] = {90000,65000,40000,15000,-15000,-40000,-6500
 struct scheduler_desc dem_update_noise_desc;
 float dem_noise = -150;
 static void wa1470dem_update_noise(struct scheduler_desc *desc);
+
+uint32_t last_rx_freq = 0;
 
 #ifdef DEM_CALC_SPECTRUM
 uint32_t dem_spectrum_mas[32];
@@ -85,10 +87,12 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 
 	tmp_dem_mess_received = dem_mess_received;
 	memcpy(tmp_dem_mas, dem_mas, sizeof(tmp_dem_mas));
-	memcpy(tmp_dem_info_mas, dem_info_mas, sizeof(tmp_dem_info_mas));
+	//memcpy(tmp_dem_info_mas, dem_info_mas, sizeof(tmp_dem_info_mas));
 	dem_mess_received = 0;
 	memset(dem_mas, 0 , sizeof(dem_mas));
-	memset(dem_info_mas, 0 , sizeof(dem_info_mas));
+	//memset(dem_info_mas, 0 , sizeof(dem_info_mas));
+    dem_packet_info_st info;
+
 
 	wa1470_hal->__wa1470_enable_pin_irq();
 
@@ -108,12 +112,27 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 			rssi64 <<= 32;
 			rssi64 += tmp_dem_mas[i].rssi;
 			float rssi = log10f(rssi64)*20 - 48 - wa1470dem_get_rssi_logoffset();
-			tmp_dem_info_mas[i].rssi = (int16_t)rssi;
+			info.rssi = (int16_t)rssi;
 			float snr = rssi - dem_noise;
 			if(snr < 0) snr = 0;
-			tmp_dem_info_mas[i].snr = (uint8_t)snr;
+			info.snr = (uint8_t)snr;
+            info.freq = last_rx_freq;
+            info.bitrate = current_rx_phy;
+            switch(current_rx_phy)
+			{
+                case DBPSK_50_PROT_D:
+                    info.freq += tmp_dem_mas[i].freq*50;
+                    break;
+                case DBPSK_400_PROT_D:
+                    if(tmp_dem_mas[i].freq < 2)
+                        info.freq += tmp_dem_mas[i].freq*400;
+                    else info.freq -= tmp_dem_mas[i].freq*400;
+                    break;
+            }
+
+
 #ifdef WA1470_LOG
-                        float dsnr = log10f(((float)rssi64)/tmp_dem_mas[i].noise/4)*20;
+            float dsnr = log10f(((float)rssi64)/tmp_dem_mas[i].noise/4)*20;
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " RSSI=%ld", tmp_dem_mas[i].rssi);
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " LRSSI=%f", rssi);
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " SNR=%f", rssi - dem_noise);
@@ -140,7 +159,7 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 			}
 			wa1470_hal->__wa1470_log_send_str(wa1470_log_string);
 #endif
-			wa1470_hal->__wa1470_data_received((uint8_t*)&tmp_dem_mas[i].packet, (uint8_t*)&tmp_dem_info_mas[i]);
+			wa1470_hal->__wa1470_data_received((uint8_t*)&tmp_dem_mas[i].packet, (uint8_t*)&info);
 		}
 	}
 }
@@ -177,10 +196,10 @@ void wa1470dem_isr(void)
 				break;
 		}
 
-		if(new_packet.crc_or_zigzag)
+		/*if(new_packet.crc_or_zigzag)
 			dem_info_mas[i].num_of_zigzag++;
 		else
-			dem_info_mas[i].num_of_crc++;
+			dem_info_mas[i].num_of_crc++;*/
 
 		if(i == dem_mess_received)
 		{
@@ -315,6 +334,8 @@ void wa1470dem_set_freq(uint32_t freq)
 		wa1470rfe_set_freq(freq);
 		break;
 	}
+    last_rx_freq = freq;
+
         #ifdef WA1470_LOG
 	sprintf(wa1470_log_string, "%05u: dem_set_freq to %ld", ((uint16_t)(wa1470_scheduler->__scheduler_curr_time()&0xffff)), freq);
 	wa1470_hal->__wa1470_log_send_str(wa1470_log_string);
