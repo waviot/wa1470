@@ -50,15 +50,16 @@ typedef enum
 	DBPSK_3200_PROT_D	= 12,
 	DBPSK_25600_PROT_D	= 13,
 	DBPSK_100H_PROT_D	= 18,
-        DBPSK_UNDEFINED         = 100
+    DBPSK_UNDEFINED         = 100
 }dem_bitrate_s;
 
 typedef struct {
 	dem_bitrate_s bitrate;
 	int16_t rssi;
 	uint8_t snr;
-	uint8_t	num_of_crc;
-	uint8_t	num_of_zigzag;
+    uint32_t freq;
+	//uint8_t	num_of_crc;
+	//uint8_t	num_of_zigzag;
 } dem_packet_info_st;
 
 //----------------------------------------------------------

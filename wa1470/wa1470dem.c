@@ -7,14 +7,14 @@
 
 dem_packet_st dem_mas[DEM_MAS_SIZE];
 
-dem_packet_info_st dem_info_mas[DEM_MAS_SIZE];
+//dem_packet_info_st dem_info_mas[DEM_MAS_SIZE];
 
 uint8_t	dem_mess_received;
 
 struct scheduler_desc dem_processMessages_desc;
 
 dem_packet_st tmp_dem_mas[DEM_MAS_SIZE];
-dem_packet_info_st tmp_dem_info_mas[DEM_MAS_SIZE];
+//dem_packet_info_st tmp_dem_info_mas[DEM_MAS_SIZE];
 uint8_t	tmp_dem_mess_received;
 
 dem_bitrate_s current_rx_phy = DBPSK_100H_PROT_D;
@@ -29,6 +29,8 @@ struct scheduler_desc dem_update_noise_desc;
 float dem_noise = -150;
 static void wa1470dem_update_noise(struct scheduler_desc *desc);
 
+uint32_t last_rx_freq = 0;
+
 #ifdef DEM_CALC_SPECTRUM
 uint32_t dem_spectrum_mas[32];
 #endif
@@ -36,10 +38,10 @@ uint32_t dem_spectrum_mas[32];
 
 void wa1470dem_init(uint32_t preambule)
 {
-  
+
 	uint8_t NB_FI_RX_CRC_POLY[4] = {0xb7, 0x1d, 0xc1, 0x04};
 	wa1470_spi_write8(DEM_CONTROL, DEM_CONTROL_RESET);
-        wa1470dem_set_threshold(800); //1024 
+        wa1470dem_set_threshold(800); //1024
 	wa1470dem_set_alpha(128, 5);
 	wa1470dem_set_crc_poly(NB_FI_RX_CRC_POLY);
 	wa1470dem_set_hop_table(current_hop_table);
@@ -86,11 +88,13 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 	wa1470_hal->__wa1470_disable_pin_irq();
 
 	tmp_dem_mess_received = dem_mess_received;
-	memcpy(tmp_dem_mas, dem_mas, sizeof(tmp_dem_mas)); 
-	memcpy(tmp_dem_info_mas, dem_info_mas, sizeof(tmp_dem_info_mas)); 
+	memcpy(tmp_dem_mas, dem_mas, sizeof(tmp_dem_mas));
+	//memcpy(tmp_dem_info_mas, dem_info_mas, sizeof(tmp_dem_info_mas));
 	dem_mess_received = 0;
 	memset(dem_mas, 0 , sizeof(dem_mas));
-	memset(dem_info_mas, 0 , sizeof(dem_info_mas));
+	//memset(dem_info_mas, 0 , sizeof(dem_info_mas));
+    dem_packet_info_st info;
+
 
 	wa1470_hal->__wa1470_enable_pin_irq();
 
@@ -98,11 +102,11 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 
 	if(wa1470_hal->__wa1470_data_received)
 	{
-		for(uint8_t i = 0; i != tmp_dem_mess_received; i++) 
+		for(uint8_t i = 0; i != tmp_dem_mess_received; i++)
 		{
 #ifdef WA1470_LOG
 			sprintf(wa1470_log_string, "%05u: PLD: ", (uint16_t)(wa1470_scheduler->__scheduler_curr_time()&0xffff));
-			for(uint8_t k = 0; k != 8; k++) 
+			for(uint8_t k = 0; k != 8; k++)
 				sprintf(wa1470_log_string + strlen(wa1470_log_string), "%02X", tmp_dem_mas[i].packet.payload[k]);
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " IT crypto=%3d COP=%2d(%2d) FREQ=%2d", tmp_dem_mas[i].packet.iter, tmp_dem_info_mas[i].num_of_crc + tmp_dem_info_mas[i].num_of_zigzag, tmp_dem_info_mas[i].num_of_zigzag, tmp_dem_mas[i].freq&0x1f);
 #endif
@@ -110,17 +114,32 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 			rssi64 <<= 32;
 			rssi64 += tmp_dem_mas[i].rssi;
 			float rssi = log10f(rssi64)*20 - 48 - wa1470dem_get_rssi_logoffset();
-			tmp_dem_info_mas[i].rssi = (int16_t)rssi;
+			info.rssi = (int16_t)rssi;
 			float snr = rssi - dem_noise;
 			if(snr < 0) snr = 0;
-			tmp_dem_info_mas[i].snr = (uint8_t)snr;
-#ifdef WA1470_LOG		
-                        float dsnr = log10f(((float)rssi64)/tmp_dem_mas[i].noise/4)*20;
+			info.snr = (uint8_t)snr;
+            info.freq = last_rx_freq;
+            info.bitrate = current_rx_phy;
+            switch(current_rx_phy)
+			{
+                case DBPSK_50_PROT_D:
+                    info.freq += tmp_dem_mas[i].freq*50;
+                    break;
+                case DBPSK_400_PROT_D:
+                    if(tmp_dem_mas[i].freq < 2)
+                        info.freq += tmp_dem_mas[i].freq*400;
+                    else info.freq -= tmp_dem_mas[i].freq*400;
+                    break;
+            }
+
+
+#ifdef WA1470_LOG
+            float dsnr = log10f(((float)rssi64)/tmp_dem_mas[i].noise/4)*20;
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " RSSI=%ld", tmp_dem_mas[i].rssi);
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " LRSSI=%f", rssi);
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " SNR=%f", rssi - dem_noise);
 			sprintf(wa1470_log_string + strlen(wa1470_log_string), " DSNR=%f", dsnr);
-                        
+
 			switch(current_rx_phy)
 			{
 			case DBPSK_50_PROT_D:
@@ -142,18 +161,18 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 			}
 			wa1470_hal->__wa1470_log_send_str(wa1470_log_string);
 #endif
-			wa1470_hal->__wa1470_data_received((uint8_t*)&tmp_dem_mas[i].packet, (uint8_t*)&tmp_dem_info_mas[i]);
+			wa1470_hal->__wa1470_data_received((uint8_t*)&tmp_dem_mas[i].packet, (uint8_t*)&info);
 		}
 	}
 }
 
-void wa1470dem_isr(void) 
+void wa1470dem_isr(void)
 {
 	uint8_t status;
-               
+
 	wa1470_spi_read(DEM_CONTROL, &status, 1);
 
-	if(!(status&DEM_CONTROL_IRQ_FLAG)) 
+	if(!(status&DEM_CONTROL_IRQ_FLAG))
 		return;
 	dem_packet_st new_packet;
 
@@ -167,7 +186,7 @@ void wa1470dem_isr(void)
 		dem_mas[dem_mess_received] = new_packet;
 
 
-		if(dem_mess_received == (DEM_MAS_SIZE - 1))  
+		if(dem_mess_received == (DEM_MAS_SIZE - 1))
 			return;
 
 		wa1470_scheduler->__scheduler_add_task(&dem_processMessages_desc,  wa1470dem_process_messages, RELATIVE, (current_rx_phy == DBPSK_25600_PROT_D)?MILLISECONDS(10):MILLISECONDS(20));
@@ -179,10 +198,10 @@ void wa1470dem_isr(void)
 				break;
 		}
 
-		if(new_packet.crc_or_zigzag)
+		/*if(new_packet.crc_or_zigzag)
 			dem_info_mas[i].num_of_zigzag++;
-		else 
-			dem_info_mas[i].num_of_crc++;
+		else
+			dem_info_mas[i].num_of_crc++;*/
 
 		if(i == dem_mess_received)
 		{
@@ -207,18 +226,18 @@ int16_t wa1470dem_get_bitrate_sensitivity(dem_bitrate_s bitrate)
 {
 	switch(bitrate)
 	{
-	case DBPSK_50_PROT_D: 
-	default: 
+	case DBPSK_50_PROT_D:
+	default:
 		return -148;
-	case DBPSK_400_PROT_D: 
+	case DBPSK_400_PROT_D:
 		return -139;
-	case DBPSK_3200_PROT_D: 
+	case DBPSK_3200_PROT_D:
 		return -130;
-	case DBPSK_25600_PROT_D: 
+	case DBPSK_25600_PROT_D:
 		return -118;
-	case DBPSK_100H_PROT_D: 
+	case DBPSK_100H_PROT_D:
 		return -145;
-	}  
+	}
 }
 
 static int8_t wa1470dem_get_sensitivity_diff(dem_bitrate_s bitrate_1, dem_bitrate_s bitrate_2)
@@ -254,12 +273,12 @@ void wa1470dem_set_bitrate(dem_bitrate_s bitrate)
 	}
 	dem_noise -= wa1470dem_get_sensitivity_diff(current_rx_phy, bitrate);
 	if(current_rx_phy != bitrate) wa1470dem_update_noise(0); //reinit noise engine
-	current_rx_phy = bitrate;    
+	current_rx_phy = bitrate;
 	wa1470dem_reset();
-        
-        #ifdef WA1470_LOG       
-	sprintf(wa1470_log_string, "%05u: dem_set_bitrate to %d", ((uint16_t)(wa1470_scheduler->__scheduler_curr_time()&0xffff)), bitrate); 
-	wa1470_hal->__wa1470_log_send_str(wa1470_log_string); 
+
+        #ifdef WA1470_LOG
+	sprintf(wa1470_log_string, "%05u: dem_set_bitrate to %d", ((uint16_t)(wa1470_scheduler->__scheduler_curr_time()&0xffff)), bitrate);
+	wa1470_hal->__wa1470_log_send_str(wa1470_log_string);
         #endif
 }
 
@@ -297,7 +316,7 @@ void wa1470dem_set_hop_table(uint8_t* hop)
 	wa1470_spi_write8(DEM_HOP_TABLE+1, (hop[3] << 4) | hop[2]);
 	wa1470_spi_write8(DEM_HOP_TABLE+2, (hop[5] << 4) | hop[4]);
 	wa1470_spi_write8(DEM_HOP_TABLE+3, (hop[7] << 4) | hop[6]);
-	for(int i = 0; i<8; i++ ) 
+	for(int i = 0; i<8; i++ )
 		current_hop_table[i] = hop[i];
 }
 
@@ -308,18 +327,20 @@ void wa1470dem_set_freq(uint32_t freq)
 	case DBPSK_50_PROT_D:
 	case DBPSK_400_PROT_D:
 	case DBPSK_3200_PROT_D:
-		wa1470rfe_set_freq(freq - DEM_FREQ_OFFSETS[current_hop_table[0]]);     
+		wa1470rfe_set_freq(freq - DEM_FREQ_OFFSETS[current_hop_table[0]]);
 		break;
 	case DBPSK_25600_PROT_D:
-		wa1470rfe_set_freq(freq - DEM_FREQ_OFFSETS[current_hop_table[1]]);   
+		wa1470rfe_set_freq(freq - DEM_FREQ_OFFSETS[current_hop_table[1]]);
 		break;
 	case DBPSK_100H_PROT_D:
 		wa1470rfe_set_freq(freq);
 		break;
 	}
+    last_rx_freq = freq;
+
         #ifdef WA1470_LOG
-	sprintf(wa1470_log_string, "%05u: dem_set_freq to %ld", ((uint16_t)(wa1470_scheduler->__scheduler_curr_time()&0xffff)), freq); 
-	wa1470_hal->__wa1470_log_send_str(wa1470_log_string); 
+	sprintf(wa1470_log_string, "%05u: dem_set_freq to %ld", ((uint16_t)(wa1470_scheduler->__scheduler_curr_time()&0xffff)), freq);
+	wa1470_hal->__wa1470_log_send_str(wa1470_log_string);
         #endif
 }
 
@@ -342,24 +363,24 @@ static uint32_t wa1470dem_get_rssi_int(_Bool aver_or_max)
 		break;
 	case DBPSK_25600_PROT_D:
 		size = 1;
-		break;  
+		break;
 	case DBPSK_100H_PROT_D:
 		size = 16;
 		break;
 	}
-	wa1470_spi_read(DEM_FFT_READ_BUF, (uint8_t*)(&data[0]), 4*size); 
-	wa1470_spi_write8(DEM_FFT_READ_BUF + 100, 0); 
+	wa1470_spi_read(DEM_FFT_READ_BUF, (uint8_t*)(&data[0]), 4*size);
+	wa1470_spi_write8(DEM_FFT_READ_BUF + 100, 0);
 
-	for(int i = 0; i != size; i++) 
+	for(int i = 0; i != size; i++)
 	{
 		rssi += data[i];
-		if(data[i] > max) 
+		if(data[i] > max)
 			max = data[i];
 #ifdef DEM_CALC_SPECTRUM
 		dem_spectrum_mas[i] = ((dem_spectrum_mas[i]*15 + data[i] + 1)>>4);
 #endif
 	}
-	return (aver_or_max?rssi/size:max); 
+	return (aver_or_max?rssi/size:max);
 }
 
 float wa1470dem_get_rssi()
@@ -375,7 +396,7 @@ float wa1470dem_get_noise()
 #ifdef DEM_CALC_SPECTRUM
 void wa1470dem_get_spectrum(uint8_t size, float* data)
 {
-	for(int i = 0; i != size; i++) 
+	for(int i = 0; i != size; i++)
 		data[i] = 20*log10f(dem_spectrum_mas[i]) - wa1470dem_get_rssi_logoffset();
 }
 #endif
@@ -390,7 +411,7 @@ static uint8_t wa1470dem_get_noise_calc_duration()
 
 static void wa1470dem_update_noise(struct scheduler_desc *desc)
 {
-        
+
 	static uint32_t dem_noise_sum;
 	static uint32_t dem_noise_min;
 	static uint8_t dem_noise_cntr;
@@ -411,7 +432,7 @@ static void wa1470dem_update_noise(struct scheduler_desc *desc)
 		dem_noise_sum = 0;
 		if(aver < dem_noise_min)
 			dem_noise_min = aver;
-		if(--dem_noise_min_cntr == 0) 
+		if(--dem_noise_min_cntr == 0)
 		{
 			dem_noise_min_cntr = wa1470dem_get_noise_calc_duration();
 			dem_noise = dem_noise_min;
@@ -433,10 +454,10 @@ static void wa1470dem_update_noise(struct scheduler_desc *desc)
 void wa1470dem_rx_enable(_Bool en)
 {
 	dem_rx_enabled = en;
-	if(en) 
+	if(en)
 	{
 		wa1470_scheduler->__scheduler_add_task(&dem_update_noise_desc,  wa1470dem_update_noise, RELATIVE, MILLISECONDS(DEM_NOISE_TICK));
 	}
-	else 
+	else
 		wa1470_scheduler->__scheduler_remove_task(&dem_update_noise_desc);
 }
