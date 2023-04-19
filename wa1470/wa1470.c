@@ -85,6 +85,7 @@ void wa1470_reinit(uint32_t preambule)
 void wa1470_deinit()
 {
         wa1470_hal->__wa1470_disable_pin_irq();
+        wa1470dem_rx_enable(0);
         wa1470rfe_deinit();
 
 }
