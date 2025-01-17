@@ -157,6 +157,7 @@ _Bool wa1470rfe_set_freq(uint32_t freq)
 	uint8_t tmp = wa1470_spi_read8(RFE_VCO_RUN);
 	wa1470_spi_write8(RFE_VCO_RUN, tmp&0xdf);
 	wa1470_spi_write8(RFE_VCO_RUN, tmp|0x20);
+               
 	return wa1470_spi_wait_for(RFE_VCO_RESULT, 0x04, 0x04);
 }
 
