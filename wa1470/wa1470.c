@@ -97,8 +97,8 @@ void wa1470_deinit()
 
 void wa1470_isr()
 {
-	wa1470dem_isr();
-	wa1470mod_isr();
+  wa1470mod_isr();
+  wa1470dem_isr();
 }
 
 _Bool wa1470_cansleep()
