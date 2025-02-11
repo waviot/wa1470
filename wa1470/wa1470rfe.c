@@ -5,6 +5,8 @@ uint16_t rfe_rx_total_vga_gain;
 _Bool rfe_pll_mode_fractional = 0;
 _Bool rfe_zero_gain_mode = 0;
 
+static uint16_t slowfreq = 0;
+
 void wa1470rfe_init()
 {
 	wa1470_hal->__wa1470_chip_enable();
@@ -37,7 +39,7 @@ void wa1470rfe_init()
 		wa1470rfe_set_tx_mode(RFE_TX_MODE_I_Q);
 
 	wa1470rfe_set_rx_mode(RFE_RX_MODE_LONF);
-	wa1470rfe_set_rx_gain(RFE_DEFAULT_VGA_GAIN);
+        wa1470rfe_set_rx_gain(RFE_DEFAULT_VGA_GAIN);
 
 }
 
@@ -158,12 +160,24 @@ _Bool wa1470rfe_set_freq(uint32_t freq)
 	uint8_t tmp = wa1470_spi_read8(RFE_VCO_RUN);
 	wa1470_spi_write8(RFE_VCO_RUN, tmp&0xdf);
 	wa1470_spi_write8(RFE_VCO_RUN, tmp|0x20);
-	return wa1470_spi_wait_for(RFE_VCO_RESULT, 0x04, 0x04);
+        //if (wa1470_spi_wait_for(RFE_VCO_RESULT, 0x04, 0x04))  return 1;
+        //else {
+          //slowfreq++;
+          //return 0;
+        //}
+        return 1;
 }
+
+
 
 void wa1470rfe_set_zero_gain_mode(_Bool mode)
 {
     rfe_zero_gain_mode = mode;
+}
+
+uint16_t wa1470rfe_get_slowfreq()
+{
+  return slowfreq;
 }
 
 

@@ -1,7 +1,7 @@
 #ifndef WA1471
 #include "wa1470.h"
 
-#define SPI_WAIT_TIMEOUT		100000
+#define SPI_WAIT_TIMEOUT		1000 //100000
 
 wa1470_HAL_st *wa1470_hal = 0;
 ischeduler_st* wa1470_scheduler = 0;
@@ -51,12 +51,17 @@ uint8_t wa1470_spi_read8(uint16_t address)
 	return data;
 }
 
+
+
 _Bool wa1470_spi_wait_for(uint16_t address, uint8_t value, uint8_t mask)
 {
 	uint32_t timeout = 0;
-	while((wa1470_spi_read8(address) & mask) != value)
+        while((wa1470_spi_read8(address) & mask) != value)
 	{
-		if(++timeout >= SPI_WAIT_TIMEOUT) return 0;
+		if(++timeout >= SPI_WAIT_TIMEOUT) 
+                {
+                  return 0;
+                }
 	}
 	return 1;
 }
@@ -93,8 +98,8 @@ void wa1470_deinit()
 
 void wa1470_isr()
 {
-	wa1470dem_isr();
-	wa1470mod_isr();
+  wa1470mod_isr();
+  wa1470dem_isr();
 }
 
 _Bool wa1470_cansleep()

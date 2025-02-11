@@ -96,9 +96,13 @@ void wa1470rfe_set_rx_gain(uint8_t gain);
 
 void wa1470rfe_set_zero_gain_mode(_Bool mode);
 
+uint16_t wa1470rfe_get_slowfreq();
+
 void wa1470rfe_transmit_carrier(uint32_t freq);
 
+
 extern _Bool rfe_zero_gain_mode;
+
 extern uint16_t rfe_rx_total_vga_gain;
 
 #endif
