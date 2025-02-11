@@ -1,3 +1,4 @@
+#ifndef WA1471
 #include "wa1470.h"
 
 #define SPI_WAIT_TIMEOUT		100000
@@ -101,3 +102,4 @@ _Bool wa1470_cansleep()
 	return 1;
 }
 
+#endif //#ifndef WA1471

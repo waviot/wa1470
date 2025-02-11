@@ -1,3 +1,4 @@
+#ifndef WA1471
 #ifndef _wa1470MOD_H
 #define _wa1470MOD_H
 
@@ -93,3 +94,5 @@ _Bool wa1470mod_is_tx_in_progress();
 #define wa1470_bpsk_pin_tx_finished wa1470_tx_finished
 
 #endif
+
+#endif //#ifndef WA1471

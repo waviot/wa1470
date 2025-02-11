@@ -1,3 +1,4 @@
+#ifndef WA1471
 #ifndef _wa1470_H
 #define _wa1470_H
 #include <string.h>
@@ -54,3 +55,4 @@ _Bool wa1470_cansleep();
 void wa1470_test();
 extern _Bool send_by_dbpsk;
 #endif
+#endif //#ifndef WA1471

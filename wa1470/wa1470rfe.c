@@ -1,3 +1,4 @@
+#ifndef WA1471
 #include "wa1470.h"
 
 uint16_t rfe_rx_total_vga_gain;
@@ -172,3 +173,4 @@ void wa1470rfe_transmit_carrier(uint32_t freq)
     wa1470rfe_set_freq(freq);
     wa1470rfe_set_mode(RFE_MODE_TX);
 }
+#endif //#ifndef WA1471

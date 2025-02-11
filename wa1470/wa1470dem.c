@@ -1,3 +1,5 @@
+#ifndef WA1471
+
 #include "wa1470.h"
 
 #define DEM_MAS_SIZE	8
@@ -459,3 +461,5 @@ void wa1470dem_rx_enable(_Bool en)
 	else
 		wa1470_scheduler->__scheduler_remove_task(&dem_update_noise_desc);
 }
+
+#endif //#ifndef WA1471

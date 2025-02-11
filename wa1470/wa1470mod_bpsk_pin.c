@@ -1,3 +1,4 @@
+#ifndef WA1471
 #include "wa1470.h"
 
 void wa1470_bpsk_pin_send(uint8_t* data, mod_bitrate_s bitrate)
@@ -19,3 +20,5 @@ void wa1470_bpsk_pin_send(uint8_t* data, mod_bitrate_s bitrate)
 	if(wa1470_hal->__wa1470_send_to_bpsk_pin)
 		wa1470_hal->__wa1470_send_to_bpsk_pin(data, len, wa1470mod_phy_to_bitrate(bitrate));
 }
+
+#endif //#ifndef WA1471

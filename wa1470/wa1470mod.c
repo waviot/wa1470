@@ -1,3 +1,4 @@
+#ifndef WA1471
 #include "wa1470.h"
 
 #define MODOSCFREQ			26000000
@@ -158,3 +159,5 @@ _Bool wa1470mod_is_tx_in_progress()
 {
   return (wa1470_spi_read8(MOD_STATUS)&MOD_STATUS_TX_IN_PROGRESS);
 }
+
+#endif //#ifndef WA1471

@@ -1,3 +1,4 @@
+#ifndef WA1471
 #ifndef _wa1470RFE_H
 #define _wa1470RFE_H
 
@@ -101,3 +102,5 @@ extern _Bool rfe_zero_gain_mode;
 extern uint16_t rfe_rx_total_vga_gain;
 
 #endif
+
+#endif //#ifndef WA1471

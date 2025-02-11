@@ -1,3 +1,4 @@
+#ifndef WA1471
 #ifndef _wa1470DEM_H
 #define _wa1470DEM_H
 
@@ -105,3 +106,4 @@ void wa1470dem_get_spectrum(uint8_t size, float* data);
 int16_t wa1470dem_get_bitrate_sensitivity(dem_bitrate_s bitrate);
 
 #endif
+#endif //#ifndef WA1471
