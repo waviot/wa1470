@@ -128,6 +128,8 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
                         info.freq += tmp_dem_mas[i].freq*400;
                     else info.freq -= tmp_dem_mas[i].freq*400;
                     break;
+                default:
+                    break;
             }
 
 
@@ -155,7 +157,8 @@ static void  wa1470dem_process_messages(struct scheduler_desc *desc)
 			case DBPSK_100H_PROT_D:
 				sprintf(wa1470_log_string + strlen(wa1470_log_string), " 100HBPS");
 				break;
-
+			case DBPSK_UNDEFINED:
+				break;
 			}
 			wa1470_hal->__wa1470_log_send_str(wa1470_log_string);
 #endif
@@ -203,7 +206,9 @@ void wa1470dem_isr(void)
 
 		if(i == dem_mess_received)
 		{
-			if(++dem_mess_received > 1);
+			if(++dem_mess_received > 1)
+			{
+			}
 		}
 		else
 		{
@@ -268,6 +273,8 @@ void wa1470dem_set_bitrate(dem_bitrate_s bitrate)
 		wa1470_spi_write8(DEM_RX_MODE, 4);
 		wa1470rfe_set_rx_gain(RFE_DEFAULT_VGA_GAIN);
 	break;
+	default:
+		break;
 	}
 	dem_noise -= wa1470dem_get_sensitivity_diff(current_rx_phy, bitrate);
 	if(current_rx_phy != bitrate) wa1470dem_update_noise(0); //reinit noise engine
@@ -333,6 +340,8 @@ void wa1470dem_set_freq(uint32_t freq)
 	case DBPSK_100H_PROT_D:
 		wa1470rfe_set_freq(freq);
 		break;
+	default:
+		break;
 	}
     last_rx_freq = freq;
 
@@ -364,6 +373,9 @@ static uint32_t wa1470dem_get_rssi_int(_Bool aver_or_max)
 		break;
 	case DBPSK_100H_PROT_D:
 		size = 16;
+		break;
+	default:
+		size = 0;
 		break;
 	}
 	wa1470_spi_read(DEM_FFT_READ_BUF, (uint8_t*)(&data[0]), 4*size);
