@@ -70,8 +70,8 @@ void wa1470mod_send(uint8_t* data, mod_bitrate_s bitrate)
 	case MOD_DBPSK_25600_PROT_E:
     default:
 		for(int i = 0; i != 36; i++)
-			wa1470_spi_write8(MOD_DATA_START + i, data[i]);
-		wa1470_spi_write8(MOD_CONFIG, MOD_CONF_IRQ_ON_TX_END_EN|MOD_CONF_CLEAR_IRQ|MOD_CONF_TX_START);
+			wa1470_spi_write8(MOD_DATA_START + i + 2, data[i]);
+		wa1470_spi_write8(MOD_CONFIG, MOD_CONF_PROT_E_EN|MOD_CONF_IRQ_ON_TX_END_EN|MOD_CONF_CLEAR_IRQ|MOD_CONF_TX_START);
 		break;
 	case MOD_DBPSK_100H_PROT_D:
 		for(int i = 0; i != 36; i++)
